@@ -27,21 +27,33 @@ class _DocumentListState extends State<DocumentList>{
   var lastCount = 0;
   _getList(i){
     req r = new req();
-    Future t =  r.get('https://gank.io/api/data/Android/5/2');
+    Future t =  r.get('https://gank.io/api/data/Android/27/2');
     t.then((val){
       setState(() {
-        list.add(val);
+        list.add((val.data)["results"]);
       });
     });
   }
 
-  _assembleCard(l,i){
-    var result = l[i];
+  Future<dynamic> _Refresh(){
+    req r = new req();
+    Future t =  r.get('https://gank.io/api/data/Android/27/2');
+    t.then((val){
+      setState(() {
+        list.add((val.data)["results"]);
+      });
+    });
+    return t;
+  }
+
+  _assembleCard(l){
+    var result = l;
     return new Card(
       child: Column(
         children: <Widget>[
-          new Text(result['title']),
-          new Text(result['content']),
+        //  new Text(result['_id']),
+
+          new Text(result['desc']),
         ],
       ),
     );
@@ -49,12 +61,14 @@ class _DocumentListState extends State<DocumentList>{
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return ListView.builder(itemBuilder: (context,index){
-      lastCount = index;
-      if(index > list.length){
-        list.addAll(_getList(list.length + 10));
-      }
-      return _assembleCard(list,index);
-    });
+    return RefreshIndicator(
+      child:  ListView.builder(itemBuilder: (context,index){
+        lastCount = index;
+        return list.length==0 ? CircularProgressIndicator():_assembleCard(list[0][index]);
+
+      }),
+      onRefresh: _Refresh,
+    );
+
   }
 }
